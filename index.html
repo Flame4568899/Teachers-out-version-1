@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Out Voting System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .vote-form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin: 10px 0 5px;
+        }
+        input, select, button {
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .disabled {
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vote for a Teacher Who is Out</h1>
+        <form id="vote-form" class="vote-form">
+            <label for="teacher">Choose a teacher:</label>
+            <select id="teacher" name="teacher" required>
+                <option value="Ms. Sally O’Brien - Biology & Science">Ms. Sally O’Brien - Biology & Science</option>
+                <option value="Ms. Sarah Ryan - Art">Ms. Sarah Ryan - Art</option>
+                <option value="Mr. Coleman Quinn - Maths & English">Mr. Coleman Quinn - Maths & English</option>
+                <option value="Ms. Zoe O’Keeffe - Secretary">Ms. Zoe O’Keeffe - Secretary</option>
+                <option value="Ms. Julie O’Connor - Home Economics">Ms. Julie O’Connor - Home Economics</option>
+                <option value="Mr. Sweeney - English and Geography">Mr. Sweeney - English and Geography</option>
+                <option value="Dominic O Sullivan">Dominic O Sullivan</option>
+                <option value="Patrick Drislane">Patrick Drislane</option>
+                <option value="Naoise O Sullivan">Naoise O Sullivan</option>
+                <option value="Claire Downey">Claire Downey</option>
+                <option value="Carol Carey">Carol Carey</option>
+                <option value="Ciarain Meade">Ciarain Meade</option>
+                <option value="Michael Walsh">Michael Walsh</option>
+                <option value="Mairead Foley">Mairead Foley</option>
+                <option value="Scott Fitzgerald">Scott Fitzgerald</option>
+                <option value="Treasa Moher">Treasa Moher</option>
+            </select>
+
+            <button type="submit">Submit Vote</button>
+        </form>
+
+        <div id="results" class="results" style="display:none;">
+            <h2>Current Votes</h2>
+            <div id="vote-results"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('vote-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const teacher = document.getElementById('teacher').value;
+
+            const response = await fetch('/vote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ teacher })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                updateResults(data);
+            } else {
+                alert('Vote submission failed. Please try again.');
+            }
+        });
+
+        async function updateResults(data) {
+            document.getElementById('results').style.display = 'block';
+            const resultsDiv = document.getElementById('vote-results');
+            resultsDiv.innerHTML = '';
+
+            data.forEach(vote => {
+                const voteEntry = document.createElement('p');
+                voteEntry.textContent = `${vote.teacher} was voted out.`;
+                resultsDiv.appendChild(voteEntry);
+            });
+
+            disableVotedOptions(data);
+        }
+
+        function disableVotedOptions(votes) {
+            const select = document.getElementById('teacher');
+            const options = select.options;
+
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                option.disabled = votes.some(vote => vote.teacher === option.value);
+            }
+        }
+
+        // Load initial results when the page loads
+        window.onload = async function() {
+            const response = await fetch('/results');
+            const data = await response.json();
+            updateResults(data);
+        };
+    </script>
+</body>
+</html>
